@@ -18,7 +18,7 @@ HEIGHT = 704
 C_DIMENSION = 9
 R_DIMENSION = 11
 SQ_SIZE = HEIGHT // R_DIMENSION
-MAX_FPS = 10
+MAX_FPS = 1000
 IMAGES = {}
 
 
@@ -33,6 +33,21 @@ def loadImages():
         IMAGES[piece] = pygame.transform.scale(pygame.image.load("image/" + piece + ".png"),
                                                (SQ_SIZE - 10, SQ_SIZE - 10))
 
+def scoreMaterial(gs):
+    score = 0
+    for row in gs.board:
+        for square in row:
+            if square[0] == "r":
+                if int(square[1]) == 0:
+                    score += 1000000
+                else:
+                    score += int(square[1])
+            elif square[0] == "b":
+                if int(square[1]) == 0:
+                    score -= 1000000
+                else:
+                    score -= int(square[1])
+    return score
 
 def main():
     """
@@ -60,7 +75,6 @@ def main():
     red_score = 0
     blue_score = 0
 
-#    for row in gs.board:
 
     while running:
         game_over = gs.check()
@@ -101,12 +115,10 @@ def main():
                     gs.undoMove()
                     move_made = True
         if not game_over and gs.red_to_move:
-            player1_time -= 0.1
+            player1_time -= 1/MAX_FPS
             player1_timeint = int(player1_time)
-
-            # Update clock for player 2
-        if not game_over and not gs.red_to_move:
-            player2_time -= 0.1
+        else:
+            player2_time -= 1/MAX_FPS
             player2_timeint = int(player2_time)
         
             # Check for time expiration
@@ -118,20 +130,64 @@ def main():
             break    
         font = pygame.font.Font(None, 36)
         sub_screen1 = pygame.Surface((256, 176))
-        sub_screen1.fill((255, 255, 255))
+        sub_screen1.fill((255, 0, 0))
         # Write some text on the sub-screen
         font = pygame.font.Font(None, 36)
-        text = font.render("Red time:" + str(player1_timeint), True, (0, 0, 0))
+        text = font.render("Red time: " + str(player1_timeint), True, (255, 255, 255))
         text_rect = text.get_rect()
         text_rect.centerx = sub_screen1.get_rect().centerx
         text_rect.centery = sub_screen1.get_rect().centery
         sub_screen1.blit(text, text_rect)
         # Blit the sub-screen onto the main screen
-        screen.blit(sub_screen1, (576, 0))
+        screen.blit(sub_screen1, (576, 352))
 
+        sub_screen4 = pygame.Surface((256, 176))
+        sub_screen4.fill((0, 0, 255))
+        # Write some text on the sub-screen
+        font = pygame.font.Font(None, 36)
+        text = font.render("Blue time: " + str(player2_timeint), True, (255, 255, 255))
+        text_rect = text.get_rect()
+        text_rect.centerx = sub_screen4.get_rect().centerx
+        text_rect.centery = sub_screen4.get_rect().centery
+        sub_screen4.blit(text, text_rect)
+        # Blit the sub-screen onto the main screen
+        screen.blit(sub_screen4, (576, 176))
+
+        #Calculate red score
+        red_score = scoreMaterial(gs)
+        blue_score = -red_score
+        if red_score >= 15:
+            loser("Blue lose", screen)
+            running = False
+        elif blue_score >= 15:
+            loser("Red lose", screen)
+            running = False
+
+        sub_screen3 = pygame.Surface((256, 176))
+        sub_screen3.fill((255, 0, 0))
+        # Write some text on the sub-screen
+        font = pygame.font.Font(None, 36)
+        text = font.render("Red score: " + str(red_score), True, (255, 255, 255))
+        text_rect = text.get_rect()
+        text_rect.centerx = sub_screen3.get_rect().centerx
+        text_rect.centery = sub_screen3.get_rect().centery
+        sub_screen3.blit(text, text_rect)
+        # Blit the sub-screen onto the main screen
+        screen.blit(sub_screen3, (576, 528))
+
+        sub_screen2 = pygame.Surface((256, 176))
+        sub_screen2.fill((0, 0, 255))
+        # Write some text on the sub-screen
+        font = pygame.font.Font(None, 36)
+        text = font.render("Blue score: " + str(blue_score), True, (255, 255, 255))
+        text_rect = text.get_rect()
+        text_rect.centerx = sub_screen2.get_rect().centerx
+        text_rect.centery = sub_screen2.get_rect().centery
+        sub_screen2.blit(text, text_rect)
+        # Blit the sub-screen onto the main screen
+        screen.blit(sub_screen2, (576, 0))
         # Update the display
         pygame.display.flip()
-
         
 
         # AI move finder
@@ -147,32 +203,6 @@ def main():
             move_made = False
         drawGameState(screen, gs, valid_moves, sq_selected)
         clock.tick(MAX_FPS)
-        pygame.display.flip()
-        for row in gs.board:
-            for square in row:
-                if square[0] == "r":
-                    if int(square[1]) == 0:
-                        red_score += 1000000
-                    else:
-                        red_score += int(square[1])
-                elif square[0] == "b":
-                    if int(square[1]) == 0:
-                        red_score -= 1000000
-                    else:
-                        red_score -= int(square[1])
-        
-        sub_screen3 = pygame.Surface((256, 176))
-        sub_screen3.fill((255, 255, 255))
-        # Write some text on the sub-screen
-        font = pygame.font.Font(None, 36)
-        text = font.render("Red score:" + str(red_score), True, (0, 0, 0))
-        text_rect = text.get_rect()
-        text_rect.centerx = sub_screen3.get_rect().centerx
-        text_rect.centery = sub_screen3.get_rect().centery
-        sub_screen3.blit(text, text_rect)
-        # Blit the sub-screen onto the main screen
-        screen.blit(sub_screen3, (576, 176))
-        # Update the display
         pygame.display.flip()
         
 
