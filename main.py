@@ -13,12 +13,12 @@ from AI.Negascout import Negascout
 from AI.Minimax import Minimax
 from AI.Greedy import Greedy
 
-WIDTH = 576
+WIDTH = 832
 HEIGHT = 704
 C_DIMENSION = 9
 R_DIMENSION = 11
 SQ_SIZE = HEIGHT // R_DIMENSION
-MAX_FPS = 15
+MAX_FPS = 10
 IMAGES = {}
 
 
@@ -53,6 +53,15 @@ def main():
     player_one = True  # if a human playing red, then this will be True. If an AI is playing, then false
     player_two = False  # same as above but for blue
     AI = Negascout() # Greedy / Minimax / Negamax / Negascout
+    player1_time = 600
+    player2_time = 600
+    player1_timeint = 600
+    player2_timeint = 600
+    red_score = 0
+    blue_score = 0
+
+#    for row in gs.board:
+
     while running:
         game_over = gs.check()
         if game_over:
@@ -91,6 +100,39 @@ def main():
                     gs.undoMove()
                     gs.undoMove()
                     move_made = True
+        if not game_over and gs.red_to_move:
+            player1_time -= 0.1
+            player1_timeint = int(player1_time)
+
+            # Update clock for player 2
+        if not game_over and not gs.red_to_move:
+            player2_time -= 0.1
+            player2_timeint = int(player2_time)
+        
+            # Check for time expiration
+        if player1_time <= 0:
+            print("Player 1 has run out of time!")
+            break
+        if player2_time <= 0:
+            print("Player 2 has run out of time!")
+            break    
+        font = pygame.font.Font(None, 36)
+        sub_screen1 = pygame.Surface((256, 176))
+        sub_screen1.fill((255, 255, 255))
+        # Write some text on the sub-screen
+        font = pygame.font.Font(None, 36)
+        text = font.render("Red time:" + str(player1_timeint), True, (0, 0, 0))
+        text_rect = text.get_rect()
+        text_rect.centerx = sub_screen1.get_rect().centerx
+        text_rect.centery = sub_screen1.get_rect().centery
+        sub_screen1.blit(text, text_rect)
+        # Blit the sub-screen onto the main screen
+        screen.blit(sub_screen1, (576, 0))
+
+        # Update the display
+        pygame.display.flip()
+
+        
 
         # AI move finder
         if not game_over and not human_turn:
@@ -106,6 +148,33 @@ def main():
         drawGameState(screen, gs, valid_moves, sq_selected)
         clock.tick(MAX_FPS)
         pygame.display.flip()
+        for row in gs.board:
+            for square in row:
+                if square[0] == "r":
+                    if int(square[1]) == 0:
+                        red_score += 1000000
+                    else:
+                        red_score += int(square[1])
+                elif square[0] == "b":
+                    if int(square[1]) == 0:
+                        red_score -= 1000000
+                    else:
+                        red_score -= int(square[1])
+        
+        sub_screen3 = pygame.Surface((256, 176))
+        sub_screen3.fill((255, 255, 255))
+        # Write some text on the sub-screen
+        font = pygame.font.Font(None, 36)
+        text = font.render("Red score:" + str(red_score), True, (0, 0, 0))
+        text_rect = text.get_rect()
+        text_rect.centerx = sub_screen3.get_rect().centerx
+        text_rect.centery = sub_screen3.get_rect().centery
+        sub_screen3.blit(text, text_rect)
+        # Blit the sub-screen onto the main screen
+        screen.blit(sub_screen3, (576, 176))
+        # Update the display
+        pygame.display.flip()
+        
 
 
 '''
